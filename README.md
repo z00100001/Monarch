@@ -11,17 +11,17 @@
 
 ---
 
-> ** What’s the Problem?**  
+#### What’s the Problem?
 > People often show early signs of depression or emotional distress through their writing—texts, journal entries, even social media posts.  
 > But these signs usually go unnoticed.  
 > There’s no simple, offline, or privacy-first tool to detect them. Most existing tools are cloud-based, invasive, or hard to use.
 
-> ** Why Does It Matter?**  
+#### Why Does It Matter?
 > Early detection can save lives.  
 > Many people don’t ask for help—but their language may already be showing they’re struggling.  
 > Parents, counselors, and individuals need something ethical, easy, and local that works without risking privacy or requiring technical skill.
 
-> ** How Are We Solving It?**  
+#### How Are We Solving It?
 > We’re building **Monarch**—a fully offline, open-source AI tool that detects emotional distress through text.  
 > It uses pre-trained NLP models (like BERT and VADER) to flag depressive patterns and emotional shifts.  
 > Monarch runs entirely on the user’s device—**no internet, no tracking, no data ever leaves your machine.**  
