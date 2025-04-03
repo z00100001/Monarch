@@ -81,7 +81,7 @@ Everything related to training and dataset building.
 
 ### `data/`
 Local-only data storage.
-
+- `scraper.py` - Scraper for training data
 - `raw/` – Unprocessed scraped JSON or CSV data
 - `processed/` – Labeled, cleaned `.csv` or `.jsonl` training datasets
 - `test_inputs/` – Example `.txt` files to test the final app

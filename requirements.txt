@@ -11,3 +11,4 @@ scikit-learn
 pdfkit
 jinja2
 plotly
+python-dotenv
