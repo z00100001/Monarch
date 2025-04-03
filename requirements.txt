@@ -1,0 +1,12 @@
+streamlit
+transformers
+torch
+vaderSentiment
+nltk
+spacy
+matplotlib
+seaborn
+pandas
+scikit-learn
+pdfkit
+jinja2
