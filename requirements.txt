@@ -12,3 +12,7 @@ pdfkit
 jinja2
 plotly
 python-dotenv
+transformers
+datasets
+scikit-learn
+torch
