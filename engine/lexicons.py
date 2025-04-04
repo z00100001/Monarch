@@ -2,10 +2,8 @@ import os
 import csv
 import re
 
-# Path to the worry words file
 WORRYWORDS_PATH = "data/raw/external/worrywords.txt"
 
-# Simple stopword list to filter out common words
 STOPWORDS = set([
     "a", "an", "the", "and", "to", "of", "in", "it", "is", "i", "you", "he", "she",
     "we", "they", "me", "my", "your", "our", "on", "at", "with", "this", "that",
