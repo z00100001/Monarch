@@ -5,7 +5,6 @@ import json
 import os
 from datetime import datetime
 
-# creds
 REDDIT_CLIENT_ID = os.getenv("REDDIT_CLIENT_ID")
 REDDIT_CLIENT_SECRET = os.getenv("REDDIT_CLIENT_SECRET")
 REDDIT_USERNAME = os.getenv("REDDIT_USERNAME")
@@ -20,7 +19,7 @@ reddit = praw.Reddit(
     user_agent=REDDIT_USER_AGENT
 )
 
-
+# subreddits
 SUBREDDITS = [
     "depression",
     "SuicideWatch",
@@ -28,31 +27,45 @@ SUBREDDITS = [
     "mentalhealth"
 ]
 
-# scraper
-def scrape_posts(limit=100):
+# scraping
+def scrape_posts(limit=500):
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     output_path = f"data/raw/reddit_{timestamp}.json"
     os.makedirs("data/raw", exist_ok=True)
 
-    all_posts = []
+    all_posts = {}
+    types = ["hot", "new", "top"]
 
     for sub in SUBREDDITS:
-        print(f"Scraping r/{sub}...")
-        for post in reddit.subreddit(sub).hot(limit=limit):
-            all_posts.append({
-                "id": post.id,
-                "subreddit": sub,
-                "title": post.title,
-                "selftext": post.selftext,
-                "created_utc": post.created_utc,
-                "score": post.score,
-                "url": post.url
-            })
+        print(f"Scraping r/{sub}")
 
+        for kind in types:
+            print(f"  → {kind.upper()} posts")
+
+            if kind == "hot":
+                posts = reddit.subreddit(sub).hot(limit=limit)
+            elif kind == "new":
+                posts = reddit.subreddit(sub).new(limit=limit)
+            elif kind == "top":
+                posts = reddit.subreddit(sub).top(limit=limit)
+
+            for post in posts:
+                if post.id not in all_posts:
+                    all_posts[post.id] = {
+                        "id": post.id,
+                        "subreddit": sub,
+                        "title": post.title,
+                        "selftext": post.selftext,
+                        "created_utc": post.created_utc,
+                        "score": post.score,
+                        "url": post.url
+                    }
+
+    # saving to json
     with open(output_path, "w") as f:
-        json.dump(all_posts, f, indent=2)
+        json.dump(list(all_posts.values()), f, indent=2)
 
-    print(f"\nSaved {len(all_posts)} posts to {output_path}")
+    print(f"\nSaved {len(all_posts)} unique posts to {output_path}")
 
 if __name__ == "__main__":
-    scrape_posts(limit=200)
+    scrape_posts(limit=500)
