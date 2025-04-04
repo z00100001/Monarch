@@ -36,10 +36,11 @@ def get_color(score):
 # placeholder analyzer
 def analyze_text(text):
     return {
-        "depression": round(random.uniform(30, 95), 2),
-        "anxiety": round(random.uniform(10, 90), 2),
+        "distress": round(random.uniform(30, 95), 2),
+        "worry": round(random.uniform(10, 90), 2),
         "anger": round(random.uniform(0, 80), 2),
-        "sadness": round(random.uniform(40, 100), 2)
+        "sadness": round(random.uniform(40, 100), 2),
+
     }
 
 # results
