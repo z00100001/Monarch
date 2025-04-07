@@ -1,7 +1,15 @@
 import json
 import os
+import matplotlib.pyplot as plt
+from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
-from transformers import BertTokenizerFast, BertForSequenceClassification, Trainer, TrainingArguments, TrainerCallback
+from transformers import (
+    BertTokenizerFast,
+    BertForSequenceClassification,
+    Trainer,
+    TrainingArguments,
+    TrainerCallback
+)
 from datasets import Dataset
 import torch
 from tqdm.auto import tqdm
@@ -18,7 +26,7 @@ def load_data(path):
     labels = []
 
     emotion_map = {"sadness": 0, "anger": 1, "fear": 2, "joy": 3, "neutral": 4}
-    
+
     for entry in data:
         label = entry["labels"][0] if entry["labels"] else "neutral"
         if label in emotion_map:
@@ -27,7 +35,7 @@ def load_data(path):
 
     return texts, labels
 
-# tokenizer
+# Tokenizer
 def tokenize_data(texts, labels, tokenizer):
     encodings = tokenizer(texts, truncation=True, padding=True)
     dataset = Dataset.from_dict({
@@ -37,6 +45,7 @@ def tokenize_data(texts, labels, tokenizer):
     })
     return dataset
 
+# Progress bar
 class TQDMProgressBarCallback(TrainerCallback):
     def on_train_begin(self, args, state, control, **kwargs):
         self.progress_bar = tqdm(total=state.max_steps, desc="🔥 Training Progress")
@@ -46,6 +55,37 @@ class TQDMProgressBarCallback(TrainerCallback):
 
     def on_train_end(self, args, state, control, **kwargs):
         self.progress_bar.close()
+
+# Loss Tracker + Plotting
+class LossTrackerCallback(TrainerCallback):
+    def __init__(self):
+        self.train_loss = []
+        self.eval_loss = []
+
+    def on_log(self, args, state, control, logs=None, **kwargs):
+        if "loss" in logs:
+            self.train_loss.append(logs["loss"])
+        if "eval_loss" in logs:
+            self.eval_loss.append(logs["eval_loss"])
+
+    def on_train_end(self, args, state, control, **kwargs):
+        plt.figure(figsize=(10, 6))
+        plt.plot(self.train_loss, label="Training Loss", marker="o")
+        if self.eval_loss:
+            plt.plot(self.eval_loss, label="Validation Loss", marker="x")
+        plt.title("Loss Over Epochs")
+        plt.xlabel("Steps")
+        plt.ylabel("Loss")
+        plt.legend()
+        plt.grid(True)
+        plt.tight_layout()
+        plt.savefig("loss_plot.png")
+        plt.show()
+
+def compute_metrics(eval_pred):
+    logits, labels = eval_pred
+    predictions = torch.argmax(torch.tensor(logits), axis=1)
+    return {"accuracy": accuracy_score(labels, predictions)}
 
 def main():
     print("Loading data...")
@@ -60,28 +100,32 @@ def main():
     print("Initializing model...")
     model = BertForSequenceClassification.from_pretrained("bert-base-uncased", num_labels=5)
 
-    os.makedirs(MODEL_OUTPUT_DIR, exist_ok=True)  # Ensure directory exists
+    os.makedirs(MODEL_OUTPUT_DIR, exist_ok=True)
 
     args = TrainingArguments(
         output_dir=MODEL_OUTPUT_DIR,
         evaluation_strategy="epoch",
         save_strategy="epoch",
+        save_total_limit=2,
         num_train_epochs=3,
-        per_device_train_batch_size=8,
-        per_device_eval_batch_size=8,
+        per_device_train_batch_size=16,
+        per_device_eval_batch_size=16,
         logging_dir="./logs",
         logging_steps=10,
         load_best_model_at_end=True,
-        metric_for_best_model="accuracy"
+        metric_for_best_model="accuracy",
+        fp16=True
     )
 
     trainer = Trainer(
-        model=model,
-        args=args,
-        train_dataset=train_ds,
-        eval_dataset=eval_ds,
-        callbacks=[TQDMProgressBarCallback()]
-    )
+    model=model,
+    args=args,
+    train_dataset=train_ds,
+    eval_dataset=eval_ds,
+    compute_metrics=compute_metrics,
+    callbacks=[TQDMProgressBarCallback(), LossTrackerCallback()]
+)
+
 
     print("Training started...")
     trainer.train()
