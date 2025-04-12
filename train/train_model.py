@@ -18,7 +18,7 @@ POSITIVE_PATH = "data/processed/positive/reddit_positive_scored.json"
 NEGATIVE_PATH = "data/processed/reddit_scored.json"
 MODEL_OUTPUT_DIR = "model/"
 
-# --- Label Mapping ---
+# labels
 emotion_map = {
     "sadness": 0,
     "anger": 1,
@@ -28,7 +28,7 @@ emotion_map = {
     "worry": 5
 }
 
-# --- Load and preprocess JSON dataset ---
+# load and pre-process
 def load_data(path):
     with open(path, "r") as f:
         data = json.load(f)
@@ -43,7 +43,7 @@ def load_data(path):
 
     return texts, labels
 
-# --- Tokenization ---
+
 def tokenize_data(texts, labels, tokenizer):
     encodings = tokenizer(texts, truncation=True, padding=True)
     dataset = Dataset.from_dict({
@@ -53,7 +53,7 @@ def tokenize_data(texts, labels, tokenizer):
     })
     return dataset
 
-# --- Training progress bar ---
+# progress bar
 class TQDMProgressBarCallback(TrainerCallback):
     def on_train_begin(self, args, state, control, **kwargs):
         self.progress_bar = tqdm(total=state.max_steps, desc="🔥 Training Progress")
@@ -62,7 +62,7 @@ class TQDMProgressBarCallback(TrainerCallback):
     def on_train_end(self, args, state, control, **kwargs):
         self.progress_bar.close()
 
-# --- Loss plot callback ---
+
 class LossTrackerCallback(TrainerCallback):
     def __init__(self):
         self.train_loss = []
@@ -88,15 +88,14 @@ class LossTrackerCallback(TrainerCallback):
         plt.savefig("loss_plot.png")
         plt.show()
 
-# --- Accuracy Metric ---
+
 def compute_metrics(eval_pred):
     logits, labels = eval_pred
     predictions = torch.argmax(torch.tensor(logits), axis=1)
     return {"accuracy": accuracy_score(labels, predictions)}
 
-# --- Train sequentially on each dataset ---
 def train_on_dataset(path, model, tokenizer, args, stage):
-    print(f"\n📦 Loading {stage} data...")
+    print(f"\nLoading {stage} data...")
     texts, labels = load_data(path)
     dataset = tokenize_data(texts, labels, tokenizer)
     train_ds, eval_ds = dataset.train_test_split(test_size=0.2).values()
@@ -110,14 +109,14 @@ def train_on_dataset(path, model, tokenizer, args, stage):
         callbacks=[TQDMProgressBarCallback(), LossTrackerCallback()]
     )
 
-    print(f"🚀 Training on {stage} data...")
+    print(f"Training on {stage} data...")
     trainer.train()
 
     return model
 
 # --- Main function ---
 def main():
-    print("🚀 Starting Monarch multi-source training...")
+    print("Starting Monarch multi-source training...")
 
     tokenizer = BertTokenizerFast.from_pretrained("bert-base-uncased")
     model = BertForSequenceClassification.from_pretrained("bert-base-uncased", num_labels=6)
@@ -141,7 +140,7 @@ def main():
     model = train_on_dataset(POSITIVE_PATH, model, tokenizer, training_args, "Positive Reddit")
     model = train_on_dataset(NEGATIVE_PATH, model, tokenizer, training_args, "Negative Reddit")
 
-    print(f"\n💾 Saving model to {MODEL_OUTPUT_DIR}")
+    print(f"\nSaving model to {MODEL_OUTPUT_DIR}")
     os.makedirs(MODEL_OUTPUT_DIR, exist_ok=True)
     model.save_pretrained(MODEL_OUTPUT_DIR)
     tokenizer.save_pretrained(MODEL_OUTPUT_DIR)
