@@ -114,7 +114,6 @@ def train_on_dataset(path, model, tokenizer, args, stage):
 
     return model
 
-# --- Main function ---
 def main():
     print("Starting Monarch multi-source training...")
 
@@ -133,7 +132,7 @@ def main():
         logging_steps=10,
         load_best_model_at_end=True,
         metric_for_best_model="accuracy",
-        fp16=False
+        fp16=True
     )
 
     model = train_on_dataset(GOEMOTIONS_PATH, model, tokenizer, training_args, "GoEmotions")
