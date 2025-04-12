@@ -22,26 +22,44 @@ MODEL_OUTPUT_DIR = "model/"
 emotion_map = {
     "sadness": 0,
     "anger": 1,
-    "fear": 2,
+    "depression": 2,
     "joy": 3,
-    "neutral": 4,
-    "worry": 5
+    "worry": 4
 }
 
-# load and pre-process
 def load_data(path):
     with open(path, "r") as f:
         data = json.load(f)
         texts = []
         labels = []
+
     for entry in data:
-        label = entry.get("labels", ["neutral"])[0]
-        if label in emotion_map:
-            text = entry.get("clean_text", entry.get("text", ""))
+        text = entry.get("clean_text", entry.get("text", "")).strip()
+        label = None
+
+        if "labels" in entry:
+            raw_label = entry["labels"][0]
+            if raw_label == "neutral":
+                continue
+            if raw_label in emotion_map:
+                label = emotion_map[raw_label]
+
+        if label is None:
+            score = entry.get("anxiety_score", 0)
+            matches = entry.get("anxiety_matches", [])
+
+            if score >= 8 and any(term in matches for term in ["suicidal", "worthless", "die", "hopeless"]):
+                label = emotion_map.get("depression")
+            elif score >= 5:
+                label = emotion_map.get("worry")
+
+        if label is not None and text:
             texts.append(text)
-            labels.append(emotion_map[label])
+            labels.append(label)
 
     return texts, labels
+
+
 
 
 def tokenize_data(texts, labels, tokenizer):
