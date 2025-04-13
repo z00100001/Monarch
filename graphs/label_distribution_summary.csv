@@ -1,0 +1,34 @@
+Label,Count,Percentage,Source
+neutral,14219,27.82419818797331,GoEmotions
+admiration,4130,8.081717316008845,GoEmotions
+approval,2939,5.751130070641645,GoEmotions
+gratitude,2662,5.20908752910788,GoEmotions
+annoyance,2470,4.833375731366065,GoEmotions
+amusement,2328,4.555505547619513,GoEmotions
+curiosity,2191,4.2874195252724885,GoEmotions
+love,2086,4.0819521358824336,GoEmotions
+disapproval,2022,3.956714869968495,GoEmotions
+optimism,1581,3.0937518345302624,GoEmotions
+anger,1567,3.0663561826115884,GoEmotions
+joy,1452,2.84132047042248,GoEmotions
+confusion,1368,2.6769465589104358,GoEmotions
+sadness,1326,2.594759603154414,GoEmotions
+disappointment,1269,2.483220163199812,GoEmotions
+realization,1110,2.1720838306948713,GoEmotions
+caring,1087,2.1270766882570493,GoEmotions
+surprise,1060,2.0742422166996066,GoEmotions
+excitement,853,1.6691779347592117,GoEmotions
+disgust,793,1.5517679979648944,GoEmotions
+desire,641,1.2543294914192904,GoEmotions
+fear,596,1.1662720388235523,GoEmotions
+remorse,545,1.0664735925483826,GoEmotions
+embarrassment,303,0.5929201808113027,GoEmotions
+nervousness,164,0.3209204939044675,GoEmotions
+relief,153,0.2993953388255093,GoEmotions
+pride,111,0.21720838306948712,GoEmotions
+grief,77,0.15067608555270728,GoEmotions
+joy,1704,100.0,Positive Reddit
+depression,1184,48.169243287225385,Negative Reddit
+worry,682,27.74613506916192,Negative Reddit
+anger,312,12.693246541903987,Negative Reddit
+sadness,280,11.391375101708705,Negative Reddit
