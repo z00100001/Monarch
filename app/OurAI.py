@@ -1,4 +1,4 @@
-app2.py
+ourai.py
 import sys
 import os
 import random
@@ -22,15 +22,9 @@ except ImportError:
     subprocess.check_call([sys.executable, "-m", "pip", "install", "transformers"])
     from transformers import RobertaTokenizer, RobertaForSequenceClassification
 
-# Update the model path to look in multiple possible locations
-MODEL_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "train"))
-# Define possible model locations in order of preference
-POSSIBLE_MODEL_PATHS = [
-    os.path.join(MODEL_DIR, "model.safetensors"),  # Direct safetensors file in train folder
-    os.path.join(MODEL_DIR, "checkpoint-2517"),    # Specific checkpoint folder (higher number)
-    os.path.join(MODEL_DIR, "checkpoint-839"),     # Specific checkpoint folder (lower number)
-    os.path.join(os.path.dirname(__file__), "mental_health_model")  # Original fallback location
-]
+#sets up a path to where the model is stored, for now, it does not exist
+MODEL_PATH = os.path.join(os.path.dirname(__file__), "mental_health_model")
+MODEL_DIR = os.path.abspath(MODEL_PATH)
 REPORTS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "reports"))
 
 # Add a debug check function
@@ -61,8 +55,7 @@ COLORS = {
     "orange": "rgba(255, 159, 64, 0.7)",  #Softer orange
     "red": "rgba(255, 99, 132, 0.7)",     #Softer red
     "blue": "rgba(54, 162, 235, 0.7)",    #Soft blue for reference lines
-    "purple": "rgba(153, 102, 255, 0.7)",  #Soft purple
-    "teal": "rgba(75, 192, 192, 0.7)"     #Soft teal for happiness
+    "purple": "rgba(153, 102, 255, 0.7)"  #Soft purple
 }
 
 #defines the reference levels for the radar chart
@@ -87,40 +80,32 @@ if 'history' not in st.session_state:
 @st.cache_resource
 def load_mental_health_model():
     """Load the mental health model and tokenizer"""
-    # Try each possible model location in order until one works
-    for model_path in POSSIBLE_MODEL_PATHS:
-        try:
-            if os.path.exists(model_path):
-                st.sidebar.info(f"Attempting to load model from: {model_path}")
-                # If it's a directory (checkpoint folder)
-                if os.path.isdir(model_path):
-                    tokenizer = RobertaTokenizer.from_pretrained(model_path)
-                    model = RobertaForSequenceClassification.from_pretrained(model_path)
-                    st.sidebar.success(f"✅ Successfully loaded model from: {model_path}")
-                    return model, tokenizer, True
-                # If it's a file (model.safetensors)
-                elif model_path.endswith(".safetensors"):
-                    # We need to load from the parent directory for safetensors file
-                    parent_dir = os.path.dirname(model_path)
-                    tokenizer = RobertaTokenizer.from_pretrained(parent_dir)
-                    model = RobertaForSequenceClassification.from_pretrained(parent_dir)
-                    st.sidebar.success(f"✅ Successfully loaded model from: {parent_dir}")
-                    return model, tokenizer, True
-        except Exception as e:
-            st.sidebar.warning(f"⚠️ Could not load model from {model_path}: {str(e)}")
-            continue  # Try the next path
-    
-    # If we've tried all paths and none worked, fall back to HuggingFace
-    st.sidebar.error("❌ Could not load any local model. Falling back to base model.")
     try:
-        # Last resort - try loading direct from HuggingFace
-        tokenizer = RobertaTokenizer.from_pretrained("roberta-base")
-        model = RobertaForSequenceClassification.from_pretrained("roberta-base", 
-                                                               num_labels=5)  # 5 labels for happiness
-        return model, tokenizer, False
-    except Exception as e2:
-        st.sidebar.error(f"Failed to load fallback model: {str(e2)}")
-        return None, None, False
+        #try to load from the specified directory
+        if os.path.exists(MODEL_DIR) and os.listdir(MODEL_DIR):
+            st.sidebar.info(f"Loading model from: {MODEL_DIR}")
+            tokenizer = RobertaTokenizer.from_pretrained(MODEL_DIR)
+            model = RobertaForSequenceClassification.from_pretrained(MODEL_DIR)
+            return model, tokenizer, True
+        else:
+            #for now, if local model not found, use the base model from HuggingFace, this will be replaced soon
+            st.sidebar.warning("⚠️ Local model not found. Using base model from HuggingFace")
+            tokenizer = RobertaTokenizer.from_pretrained("roberta-base")
+            model = RobertaForSequenceClassification.from_pretrained("roberta-base", 
+                                                                    num_labels=2)
+            return model, tokenizer, False
+    except Exception as e:
+        st.sidebar.error(f"Error loading model: {str(e)}")
+        st.sidebar.info("Falling back to base RoBERTa model...")
+        try:
+            #last resort - try loading direct from HuggingFace
+            tokenizer = RobertaTokenizer.from_pretrained("roberta-base")
+            model = RobertaForSequenceClassification.from_pretrained("roberta-base", 
+                                                                   num_labels=2)
+            return model, tokenizer, False
+        except Exception as e2:
+            st.sidebar.error(f"Failed to load fallback model: {str(e2)}")
+            return None, None, False
 
 #method to extract text from PDFs
 def extract_text_from_pdf(file):
@@ -205,7 +190,7 @@ with sidebar_col:
         
         Unlike other tools, all analysis happens entirely on your device - your data never leaves your computer.
         
-        We use fine-tuned NLP models (BERT, VADER) to identify patterns associated with sadness, worry, anger, happiness, and distress.
+        We use fine-tuned NLP models (BERT, VADER) to identify patterns associated with sadness, worry, anger, and distress.
         """)
     
     #project details from poster
@@ -217,7 +202,7 @@ with sidebar_col:
         - Can a fine-tuned deep learning model identify emotional cues in text-based language?
         
         ### Technology
-        Monarch uses VADER and BERT NLP models fine-tuned on emotion-labeled datasets to approximate categorical responses within 5 categories: sadness, worry, anger, happiness, and distress.
+        Monarch uses VADER and BERT NLP models fine-tuned on emotion-labeled datasets to approximate categorical responses within 4 categories: sadness, worry, anger, and distress.
         
         The model was trained and validated entirely offline using PyTorch, HuggingFace Transformers, and local GPU/CPU.
         """)
@@ -303,39 +288,83 @@ with main_col:
     else:
         st.warning("⚠️ Using base model (not trained)")
     
-    # Create tabs for the main interface including the new Our AI tab
+    # Create tabs for the main interface
     tab1, tab2, tab3 = st.tabs(["Text Analysis", "Upload File", "Our AI"])
+    
+    # Variable to store text input regardless of source
+    user_input = ""
+    input_source = ""
     
     # Text input tab
     with tab1:
         st.subheader("Enter text for analysis")
-        user_input = st.text_area("Type or paste any text you want to analyze...", height=200)
-        input_source = "text_area"
+        user_input_tab1 = st.text_area("Type or paste any text you want to analyze...", height=200)
+        if user_input_tab1:
+            user_input = user_input_tab1
+            input_source = "text_area"
+        
+        # Character count for tab 1
+        input_length = len(user_input_tab1) if user_input_tab1 else 0
+        st.caption(f"Character count: {input_length}")
+        
+        # Add analyze button only in this tab with a unique key
+        analyze_button_tab1 = st.button("Analyze Text", key="analyze_button_tab1_unique")
+        
+        # Process analysis for tab 1
+        if analyze_button_tab1:
+            if user_input_tab1 and user_input_tab1.strip():
+                user_input = user_input_tab1
+                input_source = "text_area"
+                analyze_triggered = True
+            else:
+                st.warning("Please enter text for analysis.")
+                analyze_triggered = False
+        else:
+            analyze_triggered = False
     
     # File input tab
     with tab2:
         st.subheader("Upload a document")
         uploaded_file = st.file_uploader("Upload a document", type=["pdf", "txt", "docx"])
+        
+        user_input_tab2 = ""
         if uploaded_file is not None:
             file_type = uploaded_file.name.split(".")[-1].lower()
             
             if file_type == "pdf":
-                user_input = extract_text_from_pdf(uploaded_file)
+                user_input_tab2 = extract_text_from_pdf(uploaded_file)
             elif file_type == "docx":
-                user_input = extract_text_from_docx(uploaded_file)
+                user_input_tab2 = extract_text_from_docx(uploaded_file)
             elif file_type == "txt":
-                user_input = extract_text_from_txt(uploaded_file)
+                user_input_tab2 = extract_text_from_txt(uploaded_file)
             else:
-                user_input = ""
+                user_input_tab2 = ""
                 st.error("Unsupported file type")
             
-            if user_input:
+            if user_input_tab2:
                 st.success(f"Successfully extracted text from {uploaded_file.name}")
-                st.text_area("Extracted text:", user_input, height=200)
-            
-            input_source = "file_upload"
+                st.text_area("Extracted text:", user_input_tab2, height=200)
+        
+        # Character count for tab 2
+        input_length = len(user_input_tab2) if user_input_tab2 else 0
+        st.caption(f"Character count: {input_length}")
+        
+        # Add analyze button only in this tab with a unique key
+        analyze_button_tab2 = st.button("Analyze Text", key="analyze_button_tab2_unique")
+        
+        # Process analysis for tab 2
+        if analyze_button_tab2:
+            if user_input_tab2 and user_input_tab2.strip():
+                user_input = user_input_tab2
+                input_source = "file_upload"
+                analyze_triggered = True
+            else:
+                st.warning("Please upload a file for analysis.")
+                analyze_triggered = False
+        else:
+            analyze_triggered = False
     
-    # New Our AI tab
+    # New Our AI tab - NO ANALYZE BUTTON HERE
     with tab3:
         st.header("Our Machine Learning Technology")
         
@@ -353,7 +382,7 @@ with main_col:
             - Emotion-labeled linguistic datasets
             - Clinical language samples (with all identifying information removed)
             
-            The AI continuously learns patterns of emotional expression across different contexts, allowing it to identify subtle indicators of emotional states like sadness, worry, anger, happiness, and distress.
+            The AI continuously learns patterns of emotional expression across different contexts, allowing it to identify subtle indicators of emotional states like sadness, worry, anger, and distress.
             """)
             
             st.subheader("Our Machine Learning Pipeline")
@@ -368,33 +397,8 @@ with main_col:
             """)
         
         with ml_col2:
-            # Try multiple possible paths for the diagram image
-            diagram_paths = [
-                os.path.join(os.path.dirname(__file__), "reports", "Diagram.jpg"),
-                os.path.join(os.path.dirname(os.path.abspath(__file__)), "reports", "Diagram.jpg"),
-                os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "reports", "Diagram.jpg"),
-                os.path.abspath(os.path.join(os.path.dirname(__file__), "reports", "Diagram.jpg")),
-                os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "reports", "Diagram.jpg"))
-            ]
-            
-            # Try each path until we find one that works
-            image_found = False
-            for diagram_path in diagram_paths:
-                if os.path.exists(diagram_path):
-                    try:
-                        st.image(diagram_path, caption="Monarch's Machine Learning Architecture")
-                        image_found = True
-                        break
-                    except Exception as e:
-                        continue
-            
-            # If no path worked, use the placeholder
-            if not image_found:
-                st.error(f"Could not find Diagram.jpg in any expected location. Please check file path.")
-                st.image("https://via.placeholder.com/400x250", caption="Monarch's Machine Learning Architecture")
+            st.image("https://via.placeholder.com/400x250", caption="Monarch's Machine Learning Architecture")
         
-        # After the ml_col1 and ml_col2 sections, now add the remaining content
-        # Note that these are not indented under ml_col2 anymore
         st.markdown("---")
         
         # Get image paths
@@ -497,13 +501,14 @@ with main_col:
         st.write("""
         Monarch is continuously evolving through ongoing research and model refinement. Current areas of development include:
         
-        - **Expanded Emotional Dimensions**: Adding more nuanced emotional categories beyond our current five dimensions
+        - **Expanded Emotional Dimensions**: Adding more nuanced emotional categories beyond our current four dimensions
         - **Cross-Cultural Adaptation**: Improving recognition of emotional expression across different cultural contexts
         - **Longitudinal Analysis**: Enhancing trend detection for users who analyze multiple texts over time
         - **Low-Resource Deployment**: Optimizing our models to run efficiently on personal devices with limited processing power
         
         Our commitment to privacy-first AI means all improvements are designed to run locally, keeping your data on your device.
         """)
+
     # You might also want to add a debug function to help troubleshoot any issues with image loading
     def debug_image_paths():
         """Debug function to check if image paths exist"""
@@ -560,38 +565,25 @@ with main_col:
         else:
             return COLORS["green"]
     
-    #map model probabilities to emotion scores - Updated to include happiness
-    def map_to_emotions(model_outputs):
-        """Map model outputs to different emotional dimensions"""
-        # Extract probabilities from model outputs
-        if isinstance(model_outputs, dict):
-            # If using our trained model, it should output a dictionary with emotion probabilities
-            distress = min(100, model_outputs.get("distress", 0) * 100)
-            sadness = min(100, model_outputs.get("sadness", 0) * 100)
-            worry = min(100, model_outputs.get("worry", 0) * 100)
-            anger = min(100, model_outputs.get("anger", 0) * 100)
-            happiness = min(100, model_outputs.get("happiness", 0) * 100)
-        else:
-            # If using the base fallback model, convert single probability to our emotion dimensions
-            depression_probability = model_outputs
-            distress = min(100, depression_probability * 100)
-            
-            #create related but different scores for other emotions
-            sadness = min(100, depression_probability * 100 * 0.9 + 10)
-            worry = min(100, depression_probability * 100 * 0.8 + random.uniform(5, 15))
-            anger = min(100, depression_probability * 100 * 0.6 + random.uniform(0, 20))
-            # Add happiness as inversely related to distress (high distress = low happiness)
-            happiness = min(100, max(0, 100 - (depression_probability * 100 * 0.7 + random.uniform(0, 15))))
+    #map model probabilities to emotion scores
+    def map_to_emotions(depression_probability):
+        """Map depression probability to different emotional dimensions"""
+        #base mapping - we'll use depression probability to inform other emotions
+        distress = min(100, depression_probability * 100)
+        
+        #create related but different scores for other emotions
+        sadness = min(100, depression_probability * 100 * 0.9 + 10)
+        worry = min(100, depression_probability * 100 * 0.8 + random.uniform(5, 15))
+        anger = min(100, depression_probability * 100 * 0.6 + random.uniform(0, 20))
         
         return {
             "distress": round(distress, 2),
             "sadness": round(sadness, 2),
             "worry": round(worry, 2),
-            "anger": round(anger, 2),
-            "happiness": round(happiness, 2)
+            "anger": round(anger, 2)
         }
     
-    #real analyzer using our model - Updated to work with the partner's model
+    #real analyzer using our model
     def analyze_text(text):
         """Analyze text using the mental health model"""
         
@@ -602,7 +594,6 @@ with main_col:
                 "worry": round(random.uniform(10, 90), 2),
                 "anger": round(random.uniform(0, 80), 2),
                 "sadness": round(random.uniform(40, 100), 2),
-                "happiness": round(random.uniform(10, 70), 2),
             }
         
         try:
@@ -617,25 +608,16 @@ with main_col:
             
             #gets model predictions
             model.eval()
-            with torch.no_grad(): #uses the model to get a result without worrying about training or tracking changes
+            with torch.no_grad(): #uses the model to get a result without worryinh about training or tracking changes
                 outputs = model(**inputs)
                 logits = outputs.logits
                 probabilities = torch.nn.functional.softmax(logits, dim=1)
             
-            # Check if we're using the fine-tuned model with 5 classes (includes happiness)
-            if probabilities.shape[1] == 5:
-                emotion_scores = {
-                    "distress": probabilities[0, 0].item(),
-                    "sadness": probabilities[0, 1].item(),
-                    "worry": probabilities[0, 2].item(),
-                    "anger": probabilities[0, 3].item(),
-                    "happiness": probabilities[0, 4].item()
-                }
-                return map_to_emotions(emotion_scores)
-            else:
-                # For the fallback model with binary classification
-                depression_prob = probabilities[0, 1].item()
-                return map_to_emotions(depression_prob)
+            #aggresion probabiltiy
+            depression_prob = probabilities[0, 1].item()
+            
+            #map to emotional dimensions
+            return map_to_emotions(depression_prob)
             
         except Exception as e:
             st.error(f"Error analyzing text: {str(e)}")
@@ -645,55 +627,9 @@ with main_col:
                 "worry": round(random.uniform(10, 90), 2),
                 "anger": round(random.uniform(0, 80), 2),
                 "sadness": round(random.uniform(40, 100), 2),
-                "happiness": round(random.uniform(10, 70), 2),
             }
     
-    #extract significant keywords with improved NLP capabilities
-    def extract_significant_keywords(text):
-        """Extract potentially significant words from text with improved NLP understanding"""
-        #this is a simplified version, it is highly recommended that later into the project we use NLP libraries
-
-        # Enhanced common words list to include more stopwords
-        common_words = {"the", "and", "a", "to", "of", "in", "that", "it", "with", 
-                       "is", "was", "for", "on", "are", "as", "be", "this", "have", 
-                       "or", "at", "by", "not", "but", "what", "all", "when", "can",
-                       "from", "an", "they", "we", "you", "he", "she", "his", "her",
-                       "their", "our", "my", "your", "i", "me", "him", "us", "them",
-                       "who", "which", "where", "there", "here", "how", "why", "am",
-                       "been", "being", "has", "had", "would", "could", "should",
-                       "will", "shall", "may", "might", "must", "do", "does", "did",
-                       "doing", "done", "get", "got", "getting", "very", "really",
-                       "just", "like", "so", "much", "many", "more", "most", "some",
-                       "any", "no", "yes", "one", "two", "three", "first", "last",
-                       "also", "then", "than", "about", "after", "before", "over",
-                       "under", "up", "down", "out", "in", "through"}
-        
-        #simple word extraction
-        words = text.lower().split()
-        #remove any punctuation
-        cleaned_words = [word.strip(".,;:!?()[]{}\"'") for word in words]
-        #remove common words and very short words
-        significant = [word for word in cleaned_words if word not in common_words and len(word) > 3]
-        
-        #count occurrences
-        word_counts = {}
-        for word in significant:
-            if word in word_counts:
-                word_counts[word] += 1
-            else:
-                word_counts[word] = 1
-        
-        #get top words
-        sorted_words = sorted(word_counts.items(), key=lambda x: x[1], reverse=True)
-        return sorted_words[:10]  # Return top 10 words
-    
-    #adds timestamp to data for historical tracking
-    def add_timestamp_to_data(data):
-        data_with_timestamp = data.copy()
-        data_with_timestamp['timestamp'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        return data_with_timestamp
-    
-    #generate radar chart - Updated to include happiness
+    #generate radar chart
     def create_radar_chart(scores):
         categories = list(scores.keys())
         values = list(scores.values())
@@ -804,7 +740,7 @@ with main_col:
         fig = go.Figure()
         
         #add traces for each emotion
-        for emotion in ["distress", "sadness", "worry", "anger", "happiness"]:
+        for emotion in ["distress", "sadness", "worry", "anger"]:
             fig.add_trace(go.Scatter(
                 x=df.index,
                 y=df[emotion],
@@ -824,14 +760,59 @@ with main_col:
         )
         
         return fig
+    
+    #create keyword extraction function
+    def extract_significant_keywords(text):
+        """Extract potentially significant words from text"""
+        #this is a simplified version, it is highly recommended that later into the project we use NLP libraries
+
+        common_words = {"the", "and", "a", "to", "of", "in", "that", "it", "with", 
+                       "is", "was", "for", "on", "are", "as", "be", "this", "have", 
+                       "or", "at", "by", "not", "but", "what", "all", "when", "can"}
         
-    # Only show analyze button on Text Analysis or Upload File tabs
-    if tab1 or tab2:
-        #add the analyze button
-        analyze_button = st.button("Analyze Text")
+        #simple word extraction
+        words = text.lower().split()
+        #remove  any punctuation
+        cleaned_words = [word.strip(".,;:!?()[]{}\"'") for word in words]
+        #remove common words and very short words
+        significant = [word for word in cleaned_words if word not in common_words and len(word) > 3]
+        
+        #count occurrences
+        word_counts = {}
+        for word in significant:
+            if word in word_counts:
+                word_counts[word] += 1
+            else:
+                word_counts[word] = 1
+        
+        #get top words
+        sorted_words = sorted(word_counts.items(), key=lambda x: x[1], reverse=True)
+        return sorted_words[:10]  # Return top 10 words
+    
+    #adds timestamp to data for historical tracking
+    def add_timestamp_to_data(data):
+        data_with_timestamp = data.copy()
+        data_with_timestamp['timestamp'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        return data_with_timestamp
+    
+    # For tab 1 (Text Analysis)
+    if tab1:
+        #add the analyze button for tab 1
+        analyze_button_tab1 = st.button("Analyze Text", key="analyze_button_tab1")
+        analyze_button = analyze_button_tab1
+    
+    # For tab 2 (Upload File)
+    elif tab2:
+        #add the analyze button for tab 2
+        analyze_button_tab2 = st.button("Analyze Text", key="analyze_button_tab2")
+        analyze_button = analyze_button_tab2
+    
+    # For tab 3 (Our AI) - no analyze button
+    else:
+        analyze_button = None
         
         #results
-        if analyze_button and user_input and user_input.strip():
+        if analyze_button is not None and user_input and user_input.strip():
             with st.spinner("Analyzing your text..."):
                 scores = analyze_text(user_input)
                 
@@ -863,12 +844,12 @@ with main_col:
                 col1, col2 = st.columns(2)
                 
                 with col1:
-                    #pie chart with updated colors for 5 emotions
+                    #pie chart
                     fig_pie = px.pie(
                         names=[e.capitalize() for e in scores.keys()],
                         values=list(scores.values()),
                         hole=0.4,
-                        color_discrete_sequence=[COLORS["red"], COLORS["orange"], COLORS["yellow"], COLORS["purple"], COLORS["teal"]],
+                        color_discrete_sequence=[COLORS["red"], COLORS["yellow"], COLORS["orange"], COLORS["green"]],
                     )
                     fig_pie.update_traces(textinfo='label+percent', pull=[0.05]*len(scores))
                     st.plotly_chart(fig_pie, use_container_width=True)
@@ -916,6 +897,7 @@ with main_col:
                     st.write(f"{user_input[:500]}...")
                 else:
                     st.write(user_input)
+            
         
             #individual emotion gauges
             with tabs[4]:
@@ -928,17 +910,6 @@ with main_col:
                     with emotion_tabs[i]:
                         color = get_color(score)
                         
-                        # For happiness, invert the color scale (high happiness is good)
-                        if emotion == "happiness":
-                            if score >= 85:
-                                color = COLORS["green"]
-                            elif score >= 65:
-                                color = COLORS["yellow"]
-                            elif score >= 40:
-                                color = COLORS["orange"]
-                            else:
-                                color = COLORS["red"]
-                        
                         #create a full-sized gauge for each emotion
                         fig = go.Figure(go.Indicator(
                             mode="gauge+number",
@@ -948,10 +919,10 @@ with main_col:
                                 'axis': {'range': [0, 100]},
                                 'bar': {'color': color},
                                 'steps': [
-                                    {'range': [0, 40], 'color': COLORS["red"] if emotion == "happiness" else COLORS["green"]},
-                                    {'range': [40, 65], 'color': COLORS["orange"] if emotion == "happiness" else COLORS["yellow"]},
-                                    {'range': [65, 85], 'color': COLORS["yellow"] if emotion == "happiness" else COLORS["orange"]},
-                                    {'range': [85, 100], 'color': COLORS["green"] if emotion == "happiness" else COLORS["red"]},
+                                    {'range': [0, 40], 'color': COLORS["green"]},
+                                    {'range': [40, 65], 'color': COLORS["yellow"]},
+                                    {'range': [65, 85], 'color': COLORS["orange"]},
+                                    {'range': [85, 100], 'color': COLORS["red"]},
                                 ],
                                 'threshold': {
                                     'line': {'color': color, 'width': 4},
@@ -964,33 +935,19 @@ with main_col:
                         fig.update_layout(height=400)
                         st.plotly_chart(fig, use_container_width=True)
                         
-                        # Adjust descriptions for happiness
-                        if emotion == "happiness":
-                            if score >= 85:
-                                st.success(f"High {emotion} level detected - excellent emotional well-being indicator.")
-                            elif score >= 65:
-                                st.info(f"Moderate-high {emotion} level detected - good emotional well-being.")
-                            elif score >= 40:
-                                st.warning(f"Moderate-low {emotion} level detected.")
-                            else:
-                                st.error(f"Low {emotion} level detected.")
+                        #add descriptions for each emotion level
+                        if score < 40:
+                            st.success(f"Low {emotion} level detected.")
+                        elif score < 65:
+                            st.info(f"Moderate {emotion} level detected.")
+                        elif score < 85:
+                            st.warning(f"High {emotion} level detected.")
                         else:
-                            # Standard descriptions for other emotions
-                            if score < 40:
-                                st.success(f"Low {emotion} level detected.")
-                            elif score < 65:
-                                st.info(f"Moderate {emotion} level detected.")
-                            elif score < 85:
-                                st.warning(f"High {emotion} level detected.")
-                            else:
-                                st.error(f"Severe {emotion} level detected.")
+                            st.error(f"Severe {emotion} level detected.")
         
             st.caption("Note: This analysis is for informational purposes only and should not be considered a medical diagnosis.")
-    
-        elif analyze_button and (not user_input or not user_input.strip()):
-            st.warning("Please enter or upload text for analysis.")
-        else:
-            st.info("Enter text or upload a file above and click 'Analyze Text' to begin.")
+        
+        # No additional messages needed here since warnings are shown in each tab
 
 #FAQ Section
 with main_col:
@@ -1043,4 +1000,3 @@ with main_col:
 #footer
 st.markdown("---")
 st.caption(f"🔒 This tool runs completely offline. No data is uploaded. | © {datetime.now().year} Monarch Project")
-                    
