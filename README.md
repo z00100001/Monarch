@@ -7,7 +7,7 @@
   </a>
 </p>
 
-<p align="center"><strong>📄 Click the image above to view the full project poster (PDF)</strong><br>
+<p align="center"><strong>Click the image above to view the full project poster (PDF)</strong><br>
 Poster ID: UR-112 – <em>Monarch: A Privacy-focused NLP Model for Emotional Pattern Detection</em></p>
 
 ---
