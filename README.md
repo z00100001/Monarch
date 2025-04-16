@@ -1,6 +1,14 @@
 # Monarch — Locally Hosted AI for Emotional Pattern Detection
 
 **Monarch** is a privacy-first, offline-capable NLP platform designed to detect emotional distress and behavioral patterns in written text. Built for accessibility, ethics, and usability, Monarch runs entirely on your device—no data collection, no internet required.
+<p align="center">
+  <a href="./Poster-UR-112.pdf">
+    <img src="./poster.png" alt="View Poster" width="500"/>
+  </a>
+</p>
+
+<p align="center"><strong>📄 Click the image above to view the full project poster (PDF)</strong><br>
+Poster ID: UR-112 – <em>Monarch: A Privacy-focused NLP Model for Emotional Pattern Detection</em></p>
 
 ---
 
