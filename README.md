@@ -1,162 +1,144 @@
-# Monarch — Locally hosted AI Emotional Pattern Detection
+# Monarch — Locally Hosted AI for Emotional Pattern Detection
 
-> **Monarch** is a privacy-first, open-source, offline-capable NLP platform designed to detect emotional distress and behavioral patterns in written text.
+**Monarch** is a privacy-first, offline-capable NLP platform designed to detect emotional distress and behavioral patterns in written text. Built for accessibility, ethics, and usability, Monarch runs entirely on your device—no data collection, no internet required.
+
+---
+
+## Download
+
+Installers for Linux and macOS are available at:
+
+**[https://0θ.com/](https://0θ.com/0x02)**
+
+> Includes `.deb` for Debian-based Linux systems and `.dmg` for macOS.
 
 ---
 
 ## The Mission
 
-> I want this project to become something that actually helps people. Not just another AI demo or class project—I want it to feel like something that could exist in the real world and make a difference.  
-> The goal isn’t to create the most complex model ever—it’s to create something powerful, usable, and accessible.  
-> A tool that someone’s parent could use, or a school counselor, or even someone just trying to understand themselves better.  
-> I want it to run entirely offline, with zero data collection, because privacy is everything when it comes to emotional well-being.  
-> I want it to feel like it respects the user, not like it's spying on them.  
-> And I want to keep learning through this. I don’t know everything about NLP or machine learning yet, but I’m learning fast, and I want this to be the kind of project that pushes me way beyond just “student-level” work.  
-> If this turns into a publishable research piece, a product, or even a tool that a few people find useful, that’s all I could ask for. I just don’t want it to be something I did for a grade. I want it to actually matter.
+Monarch was built with one goal: to matter. Not just as a class project or research prototype—but as a real tool that could make a difference.  
+Whether used by students, counselors, or individuals, Monarch is designed to help people better understand emotional patterns in their writing without compromising their privacy.  
+All analysis happens offline. All data stays on your device. This is AI that respects you.
 
 ---
 
-## What’s the Problem?
+## Why It Matters
 
-> People often express signs of emotional strain or inner conflict through their writing—texts, journal entries, even social media posts.  
-> But these signs usually go unnoticed.  
-> There’s no simple, offline, or privacy-first tool to detect them. Most existing tools are cloud-based, invasive, or hard to use.
-
----
-
-## Why Does It Matter?
-
-> Early emotional insight can change lives.  
-> Many people don’t ask for help—but their language may already reflect what they’re feeling.  
-> Parents, counselors, and individuals need something ethical, easy, and local that works without risking privacy or requiring technical skill.
+People express emotional distress in writing long before they say it out loud—through journals, essays, posts, and messages. These patterns often go unnoticed.  
+Most analysis tools are cloud-based, invasive, or designed for enterprise settings. Monarch brings emotional NLP to everyday users—privately, locally, and accessibly.
 
 ---
 
-## How Are We Solving It?
+## Core Features
 
-> We’re building **Monarch**—a fully offline, open-source AI tool that identifies emotional patterns through text.  
-> It uses pre-trained NLP models (like BERT and VADER) to flag concerning language patterns.  
-> Monarch runs entirely on the user’s device—**no internet, no tracking, no data ever leaves your machine.**  
-> It’s simple, private, modular—and designed to help.
-
----
-
-## Project Goals
-
-- Identify early signs of emotional distress using pre-trained NLP models
-- Provide an intuitive, local-only interface for text analysis
-- Export results in human-readable format (PDF, HTML, CSV)
-- Be accessible for parents, teachers, mentors, and developers
-- Stay modular, transparent, and fully privacy-respecting
+- Offline-first design with zero data collection
+- Fine-tuned BERT model for five emotional categories
+- PDF, DOCX, and TXT support
+- Custom radar charts, emotion gauges, and word clouds
+- Streamlit frontend bundled with Electron for desktop use
+- Runs on Raspberry Pi, macOS, and Linux desktops
 
 ---
 
-## Technologies we are using
+## Technologies Used
 
-- Python 3.10+
-- Hugging Face Transformers (DistilBERT, RoBERTa)
-- PyTorch
-- VADER, spaCy, NLTK
-- Streamlit
-- Matplotlib, Seaborn
-- PyInstaller
-- Raspberry Pi compatibility (planned)
+- Python 3.11+
+- PyTorch and HuggingFace Transformers
+- Streamlit and Plotly
+- Electron (for app bundling)
+- Debian & macOS packaging (`.deb`, `.dmg`)
 
 ---
 
-## Project Layout
-
-### `app/`
-
-User-facing UI built in Streamlit.
-
-- `app.py` – Main Streamlit app file  
-- `ui_helpers.py` – Custom UI formatting functions  
-- `style.css` – Optional styling for UI polish  
-
-### `engine/`
-
-Core NLP analysis pipeline.
-
-- `analyze.py` – Executes full processing (clean → tokenize → infer)  
-- `clean.py` – Text cleaning (stopwords, punctuation, emojis, etc.)  
-- `tokenizer.py` – Handles BERT-compatible tokenization  
-- `model.py` – Loads trained model and makes predictions  
-- `config.json` – Editable thresholds and logic config  
-
-### `train/`
-
-Everything related to training and dataset building.
-
-- `dataset_builder.py` – Scrapes and prepares raw text from Reddit or other sources  
-- `preprocess.py` – Cleans and tokenizes data for model ingestion  
-- `train_model.py` – Fine-tunes transformer models and saves weights  
-- `monarch_model/` – Contains saved trained model + tokenizer  
-
-### `data/`
-
-Local-only data storage.
-
-- `scraper.py` – Scraper for training data  
-- `raw/` – Unprocessed scraped JSON or CSV data  
-- `processed/` – Labeled, cleaned `.csv` or `.jsonl` training datasets  
-- `test_inputs/` – Example `.txt` files to test the final app  
-
-### `reports/`
-
-User analysis reports (fully local, never shared online).
-
-- `analysis_log.csv` – Optional log of analyzed sessions  
-- `exported_reports/` – Saved PDF or HTML reports for users  
-
-### `assets/`
-
-C-Day-ready visuals and branding.
-
-- `monarch_logo.png` – Branding/logo  
-- `poster_graphs/` – Visuals for printed poster  
-- `architecture_diagram.png` – Architecture or flow diagram  
-
+## Project Structure
+```
+MONARCH/
+├── app/
+│   └── app.py
+├── data/
+│   ├── processed/
+│   │   ├── balanced/
+│   │   │   └── balanced.json
+│   │   ├── labeled_negative/
+│   │   │   ├── find_imbalances.py
+│   │   │   └── reddit_cleaned.json
+│   │   └── positive/
+│   │       ├── goemotions_cleaned.json
+│   │       ├── reddit_positive_scored.json
+│   │       └── reddit_scored.json
+│   └── raw/
+│       ├── external/
+│       │   └── goemotions/
+│       │       ├── emotions.txt
+│       │       ├── test.tsv
+│       │       ├── train.tsv
+│       │       ├── dev.tsv
+│       │       ├── positive_lexicons.txt
+│       │       ├── worrywords.txt
+│       │       └── reddit_*.json
+│       ├── ekman_mapping.json
+│       ├── scraper.py
+│       └── scraper_positive.py
+├── engine/
+│   ├── apply_lexicons.py
+│   ├── balance_data.py
+│   ├── clean_positive.py
+│   ├── clean_reddit_data.py
+│   ├── cleaner.py
+│   ├── goemotions_loader.py
+│   ├── label_cleaner.py
+│   ├── lexicons.py
+│   ├── merge_goemotions.py
+│   ├── model.py
+│   └── positive_score.py
+├── graphs/
+│   ├── goemotions_labels.csv
+│   ├── goemotions_labels.png
+│   ├── label_distribution_summary.csv
+│   ├── negative_reddit_labels.csv
+│   ├── negative_reddit_labels.png
+│   ├── positive_reddit_labels.csv
+│   └── positive_reddit_labels.png
+├── model/
+│   ├── config.json
+│   ├── tokenizer_config.json
+│   ├── tokenizer.json
+│   ├── vocab.txt
+│   ├── model.safetensors
+│   └── special_tokens_map.json
+├── reports/
+│   ├── analysis_logs.csv
+│   ├── analyze_emotions.py
+│   ├── dataset_understanding_graphs.py
+│   ├── Diagram.jpg
+│   ├── PRIOR2modern_emotion_heatmap.png
+│   ├── PRIORenhanced_emotion_correlations.png
+│   ├── PRIORimproved_anxiety_distribution.png
+│   ├── PRIORimproved_emotion_flarebar.png
+│   ├── PRIORimproved_subreddit_worry_levels.png
+│   └── PRIORkey_expressions_wordcloud.png
+├── train/
+│   ├── test_backup.py
+│   ├── test.py
+│   └── train_model.py
+├── loss_plot.png
+├── requirements.txt
+├── README.md
+└── .gitignore
+```
 ---
 
-### Root Files
+## Results
 
-- `README.md` – You're here  
-- `LICENSE` – MIT license  
-- `requirements.txt` – All pip dependencies  
-- `run_app.bat` – Windows launcher  
-- `run_app.sh` – Mac/Linux launcher  
-- `.gitignore` – Prevents accidental commits of large files or sensitive data  
+- **Dataset**: 3,860 samples (Reddit + GoEmotions), evenly distributed across:
+  - **Sadness**, **Anger**, **Distress**, **Joy**, **Worry**, and **Neutral**
+- **Model**: Fine-tuned BERT-base
+- **Training**: 5 epochs, mixed-precision (`fp16`), trained on NVIDIA 2070 Super
+- **Final Accuracy**: **87%**
+- **Final training loss**: **0.07**
 
----
+### Poetic Prompt Evaluation
 
-## Privacy and Ethics
+Monarch was tested on ambiguous, metaphor-rich poetic prompts (not seen during training) and achieved **100% Top-1 accuracy**, confidently identifying the dominant emotion without relying on explicit keywords.  
+Prediction confidence ranged from **73% to 99%**.
 
-- All processing is done **locally on the user's device**  
-- No data is stored in the cloud or transmitted externally  
-- Users retain 100% ownership of their data  
-- Future updates will include offline report encryption and optional anonymized exports  
-
----
-
-## Upcoming Features
-
-- Journaling timeline view (weekly/monthly emotion tracking)  
-- Raspberry Pi deployable “Wellness Station” mode  
-- Auto-generated reports with smart summaries  
-- Expandable API interface for local apps and bots  
-- Optional anonymized data collection for research  
-
----
-
-## Dev Team Notes
-
-- Each folder is modular and independent  
-- Use GitHub issues and branches to assign modules  
-- Commit often with meaningful messages  
-- Do NOT push large model files or datasets—use `.gitignore`  
-- Use `run_app.bat` or `run_app.sh` to launch without CLI knowledge  
-
----
-
-MIT License © 2025 Tyler Clanton
