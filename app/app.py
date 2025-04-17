@@ -12,7 +12,24 @@ import io
 import PyPDF2
 import docx2txt
 import torch.nn.functional as F
-
+st.set_page_config(
+    page_title="Monarch - Emotional Text Analyzer",
+    layout="wide",
+    menu_items={
+        'Get Help': None,
+        'Report a bug': None,
+        'About': None
+    }
+)
+hide_streamlit_style = """
+    <style>
+    #MainMenu {visibility: hidden;}
+    header {visibility: hidden;}
+    footer {visibility: hidden;}
+    button[kind="iconButton"][title="View app menu"] {display: none !important;}
+    </style>
+"""
+st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 # Import the transformer libraries with proper fallbacks
 try:
     from transformers import BertTokenizerFast, BertForSequenceClassification
@@ -73,11 +90,6 @@ REFERENCE_LEVELS = {
     "severe": 90
 }
 
-# Sets the page layout and title for the web page
-st.set_page_config(
-    page_title="Monarch - Mental Health Text Analyzer",
-    layout="wide"
-)
 
 # Creates a list to remember past analyses for future graphs
 if 'history' not in st.session_state:
@@ -198,7 +210,7 @@ with sidebar_col:
     # Sidebar header
     st.sidebar.title("Monarch")
     st.sidebar.subheader("Privacy-focused NLP for Emotional Pattern Detection")
-    
+    st.sidebar.markdown("[Monarch's Website](https://0θ.com/0x02/)")
     # About section
     with st.sidebar.expander("📖 About Monarch", expanded=True):
         st.write("""
