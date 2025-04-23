@@ -14,11 +14,11 @@ Poster ID: UR-112 – <em>Monarch: A Privacy-focused NLP Model for Emotional Pat
 
 ## Download
 
-Installers for Linux and macOS are available at:
+Installers for Linux (.deb) are available at:
 
 **[https://0θ.com/](https://0θ.com/0x02)**
 
-> Includes `.deb` for Debian-based Linux systems and `.dmg` for macOS.
+> Includes `.deb` for Debian-based Linux systems.
 
 ---
 
@@ -44,7 +44,7 @@ Most analysis tools are cloud-based, invasive, or designed for enterprise settin
 - PDF, DOCX, and TXT support
 - Custom radar charts, emotion gauges, and word clouds
 - Streamlit frontend bundled with Electron for desktop use
-- Runs on Raspberry Pi, macOS, and Linux desktops
+- Runs on Raspberry Pi, and Linux desktops
 
 ---
 
@@ -54,7 +54,7 @@ Most analysis tools are cloud-based, invasive, or designed for enterprise settin
 - PyTorch and HuggingFace Transformers
 - Streamlit and Plotly
 - Electron (for app bundling)
-- Debian & macOS packaging (`.deb`, `.dmg`)
+- Debian packaging (`.deb`)
 
 ---
 
